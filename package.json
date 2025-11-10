@@ -1,0 +1,23 @@
+{
+  "name": "fitness-club-api",
+  "version": "1.0.0",
+  "description": "Test API for Fitness Club Database",
+  "main": "api/server.js",
+  "scripts": {
+    "start": "node api/server.js",
+    "dev": "nodemon api/server.js",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": ["fitness", "gym", "api", "mysql"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

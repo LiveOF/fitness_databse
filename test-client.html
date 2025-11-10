@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Club - API Test Client</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .output {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .output pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .error {
+            background: #ffe6e6;
+            color: #d63031;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #d63031;
+            margin-bottom: 15px;
+        }
+        
+        .success {
+            background: #e6ffe6;
+            color: #00b894;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #00b894;
+            margin-bottom: 15px;
+        }
+        
+        .api-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .status-dot.online {
+            background: #00b894;
+            box-shadow: 0 0 10px #00b894;
+        }
+        
+        .status-dot.offline {
+            background: #d63031;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏋️ Fitness Club API Test Client</h1>
+        
+        <div class="api-status">
+            <span class="status-dot offline" id="statusDot"></span>
+            <span id="statusText">Checking API...</span>
+        </div>
+        
+        <div class="section">
+            <h2>📊 Data Operations</h2>
+            <div class="controls">
+                <button onclick="fetchMembers()">Get All Members</button>
+                <button onclick="fetchTrainers()">Get All Trainers</button>
+                <button onclick="fetchClubs()">Get All Clubs</button>
+                <button onclick="fetchMemberships()">Get Active Memberships</button>
+                <button onclick="fetchWorkoutTypes()">Get Workout Types</button>
+                <button onclick="fetchUpcomingWorkouts()">Get Upcoming Workouts</button>
+                <button onclick="fetchAttendance()">Get Attendance</button>
+                <button onclick="fetchSchedule()">Get Full Schedule</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>📋 Output</h2>
+            <div id="message"></div>
+            <div class="output">
+                <pre id="output">Click a button above to fetch data from the API...</pre>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        
+        // Check API status on load
+        window.addEventListener('load', checkAPIStatus);
+        
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (data.status === 'OK') {
+                    document.getElementById('statusDot').classList.remove('offline');
+                    document.getElementById('statusDot').classList.add('online');
+                    document.getElementById('statusText').textContent = 'API Server Online';
+                }
+            } catch (error) {
+                document.getElementById('statusDot').classList.remove('online');
+                document.getElementById('statusDot').classList.add('offline');
+                document.getElementById('statusText').textContent = 'API Server Offline - Make sure to start the server with: npm start';
+            }
+        }
+        
+        async function fetchData(endpoint, title) {
+            const output = document.getElementById('output');
+            const message = document.getElementById('message');
+            
+            output.textContent = 'Loading...';
+            message.innerHTML = '';
+            
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    message.innerHTML = `<div class="success">✓ Successfully fetched ${title}</div>`;
+                    output.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    message.innerHTML = `<div class="error">✗ Error: ${data.error || 'Unknown error'}</div>`;
+                    output.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                message.innerHTML = `<div class="error">✗ Failed to connect to API: ${error.message}</div>`;
+                output.textContent = `Error: ${error.message}\n\nMake sure the API server is running:\n1. Install dependencies: npm install\n2. Configure .env file\n3. Start server: npm start`;
+            }
+        }
+        
+        function fetchMembers() {
+            fetchData('/api/members', 'Members');
+        }
+        
+        function fetchTrainers() {
+            fetchData('/api/trainers', 'Trainers');
+        }
+        
+        function fetchClubs() {
+            fetchData('/api/clubs', 'Clubs');
+        }
+        
+        function fetchMemberships() {
+            fetchData('/api/memberships/active', 'Active Memberships');
+        }
+        
+        function fetchWorkoutTypes() {
+            fetchData('/api/workouts/types', 'Workout Types');
+        }
+        
+        function fetchUpcomingWorkouts() {
+            fetchData('/api/workouts/schedule/upcoming', 'Upcoming Workouts');
+        }
+        
+        function fetchAttendance() {
+            fetchData('/api/attendance', 'Attendance Records');
+        }
+        
+        function fetchSchedule() {
+            fetchData('/api/workouts/schedule', 'Workout Schedule');
+        }
+    </script>
+</body>
+</html>
