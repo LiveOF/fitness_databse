@@ -1,58 +1,58 @@
 from pymongo import MongoClient
 
 def main():
-    # 1. Connect to Local MongoDB
-    # Make sure you have MongoDB locally running on the default port or update the URI.
+    # 1. Connect to the local MongoDB Server
+    # Ensure MongoDB is running locally on the default port 27017
     client = MongoClient("mongodb://localhost:27017/")
     
-    # Check server availability
-    try:
-        client.admin.command('ping')
-        print("Successfully connected to MongoDB!")
-    except Exception as e:
-        print("Could not connect to MongoDB. Is the service running?")
-        print(f"Error: {e}")
-        return
-
-    # 2. Create / Access the Database
-    # MongoDB creates databases and collections lazily when data is inserted.
-    db = client["game_inventory_db"]
+    # 2. Create or access a small database for the presentation demo
+    db = client["fitness_users_db"]
     
-    # Access a collection (equivalent to a table in SQL)
-    inventory = db["player_items"]
+    # Access a collection (which acts similar to a table in SQL)
+    profiles_collection = db["fitness_profiles"]
     
-    # Clear out older demo data for clean runs
-    inventory.drop()
+    # Drop existing collection to ensure a clean slate for the demo run
+    profiles_collection.drop()
 
-    # 3. Insert specific documents
-    print("\nInserting Player Items into the Database...")
-    items = [
-        {"player_id": "U123", "item_name": "Health Potion", "quantity": 5, "type": "consumable", "rare": False},
-        {"player_id": "U123", "item_name": "Sword of Destiny", "quantity": 1, "type": "weapon", "rare": True, "stats": {"damage": 50, "durability": 100}},
-        {"player_id": "U456", "item_name": "Leather Armor", "quantity": 1, "type": "armor", "rare": False},
-        {"player_id": "U789", "item_name": "Mana Potion", "quantity": 10, "type": "consumable", "rare": False}
+    # 3. Insert documents into the NoSQL database
+    print("Inserting user profiles into the MongoDB collection...")
+    users = [
+        {
+            "username": "athlete_john",
+            "age": 28,
+            "goals": ["muscle gain", "stamina"],
+            "active_subscription": True
+        },
+        {
+            "username": "yoga_jane",
+            "age": 34,
+            "goals": ["flexibility", "mindfulness"],
+            "active_subscription": True,
+            "preferred_sessions": "morning" # Example of dynamic, schematic-less data
+        },
+        {
+            "username": "casual_mike",
+            "age": 41,
+            "goals": ["weight loss"],
+            "active_subscription": False
+        }
     ]
     
-    result = inventory.insert_many(items)
-    print(f"Inserted {len(result.inserted_ids)} documents.")
+    insert_result = profiles_collection.insert_many(users)
+    print(f"Successfully inserted {len(insert_result.inserted_ids)} user profiles.\n")
 
-    # 4. Query Documents
-    print("\n--- QUERY RESULTS ---")
+    # 4. Run a simple database query
+    print("--- QUERY RESULTS: Find Active Subscriptions ---")
     
-    # Query 1: Find all items owned by player U123
-    print("\nItems for Player U123:")
-    for item in inventory.find({"player_id": "U123"}):
-        print(f"  - {item['quantity']}x {item['item_name']}")
-
-    # Query 2: Find all 'rare' items using an inclusive filter
-    print("\nAll Rare Items in Game:")
-    for item in inventory.find({"rare": True}):
-        print(f"  - {item['item_name']} (Owned by {item['player_id']})")
-
-    # Query 3: Find consumables sorting by highest quantity
-    print("\nConsumables (Highest Quantity First):")
-    for item in inventory.find({"type": "consumable"}).sort("quantity", -1):
-        print(f"  - {item['item_name']}: {item['quantity']}")
+    # Filtering query to find only users with an 'active_subscription' equal to True
+    active_users = profiles_collection.find({"active_subscription": True})
+    
+    for user_doc in active_users:
+        goals_joined = ", ".join(user_doc.get("goals", []))
+        print(f"User: {user_doc['username']} | Age: {user_doc['age']} | Primary Goals: {goals_joined}")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as error:
+        print(f"Failed to connect to MongoDB or run operations. Make sure the database is running.\nError Details: {error}")

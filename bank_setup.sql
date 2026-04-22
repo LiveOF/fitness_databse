@@ -1,10 +1,10 @@
--- PART 1: PostgreSQL Banking System Setup
+-- PART 1: Independent Bank System Setup
 -- bank_setup.sql
 
 -- 1. Accounts Table
 CREATE TABLE IF NOT EXISTS accounts (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    owner_name VARCHAR(100) NOT NULL,
     balance NUMERIC(15, 2) NOT NULL DEFAULT 0.00
 );
 
@@ -66,7 +66,7 @@ BEGIN
     -- Calculate simple monthly payment (amount + total flat interest) / months
     v_monthly_payment := (v_total_amount * (1 + (v_interest_rate / 100.0))) / v_duration;
 
-    -- Generate actual schedule
+    -- Generate actual schedule records
     FOR i IN 1..v_duration LOOP
         INSERT INTO loan_schedules (loan_id, payment_number, payment_date, amount_due)
         VALUES (p_loan_id, i, v_start_date + (i || ' month')::interval, v_monthly_payment);
@@ -112,8 +112,8 @@ BEGIN
     -- Validation 3: Check sufficient balance
     IF v_sender_balance < p_pay_amount THEN
         ROLLBACK;
-        -- Incorporate details directly to the log
-        INSERT INTO error_logs (error_message) VALUES ('Payment failed: Insufficient balance for Account ' || p_sender_id);
+        INSERT INTO error_logs (error_message) 
+        VALUES ('Payment failed: Insufficient balance for Account ' || p_sender_id);
         COMMIT;
         RETURN;
     END IF;
@@ -126,7 +126,7 @@ BEGIN
         RETURN;
     END IF;
 
-    -- Successful validations, deduct & add
+    -- Successful validations: deduct from sender, add to receiver
     UPDATE accounts SET balance = balance - p_pay_amount WHERE id = p_sender_id;
     UPDATE accounts SET balance = balance + p_pay_amount WHERE id = p_receiver_id;
 
