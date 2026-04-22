@@ -136,11 +136,5 @@ BEGIN
 
     -- Commit the main transaction
     COMMIT;
-    
-EXCEPTION WHEN OTHERS THEN
-    -- In case of unseen errors (like DB constraints), we rollback and log
-    ROLLBACK;
-    INSERT INTO error_logs (error_message) VALUES ('System Error: ' || SQLERRM);
-    COMMIT;
 END;
 $$;

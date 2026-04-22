@@ -5,7 +5,7 @@ from psycopg2 import sql, DatabaseError
 # Configure PostgreSQL connection details
 PG_DB = "bank_db"
 PG_USER = "postgres"
-PG_PASSWORD = "password123"
+PG_PASSWORD = "123123"
 PG_HOST = "localhost"
 PG_PORT = "5432"
 
